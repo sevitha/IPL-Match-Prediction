@@ -1,0 +1,30 @@
+# data analysis and wrangling
+import pandas as pd
+import numpy as np
+import random as rnd
+
+# visualization
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+# machine learning
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import SGDClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+data=pd.read_csv("/content/drive/MyDrive/Colab Notebooks/IPL_Matches_2008_2022.csv")
+data.head()
+data.info()
+del data['ID']
+del data['City']
+del data['Date']
+del data['SuperOver']
+del data['method']
+del data['Umpire1']
+del data['Umpire2']
