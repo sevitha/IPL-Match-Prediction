@@ -18,7 +18,7 @@ from sklearn.linear_model import Perceptron
 from sklearn.linear_model import SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-data=pd.read_csv("/content/drive/MyDrive/Colab Notebooks/IPL_Matches_2008_2022.csv")
+data=pd.read_csv("../IPL_Matches_2008_2022.csv")
 data.head()
 data.info()
 del data['ID']
