@@ -51,39 +51,72 @@ data['TossWinner'] = data['TossWinner'].dropna().map(teamMapping).astype(int)
 data['WinningTeam'] = data['WinningTeam'].dropna().map(teamMapping).astype(int)
 # print(data['Team1'].unique())
 
+# use target encoding to deal with nominal data
+winRateList = []
+invertedTeamDict = dict(map(reversed, teamMapping.items()))
+
+for i in range(15):
+    # calc number of won games
+    numWonGames = data.loc[data['WinningTeam'] == i]['WinningTeam'].shape[0]
+
+    # calc number of played games
+    numPlayedGames = (data.loc[data['Team1'] == i].shape[0] + data.loc[data['Team2'] == i].shape[0])
+    print('=======')
+    print(invertedTeamDict[i])
+    print(numWonGames)
+    print(numPlayedGames)
+    print('=======')
+
+    # calc win rate
+    winRate = numWonGames / numPlayedGames
+    winRateList.insert(i, winRate)
+
+print(winRateList)
+
+# Some data exploration to see who won the most coin tosses
+
+tossWinRateList = []
+batPickRateList = []
+
+for i in range(15):
+    # calc number of won games
+    numWonTosses = data.loc[data['TossWinner'] == i]['TossWinner'].shape[0]
+    timesPickedBat = data.loc[(data['TossWinner'] == i) & (data['TossDecision'] == 'bat')]['TossWinner'].shape[0]
+    timesPickedField = numWonTosses - timesPickedBat
+
+    # calc number of played games
+    numPlayedGames = (data.loc[data['Team1'] == i].shape[0] + data.loc[data['Team2'] == i].shape[0])
+
+    # calc win rate
+    tossWinRate = numWonTosses / numPlayedGames
+    tossWinRateList.insert(i, tossWinRate)
+    batPickRateList.insert(i, timesPickedBat / numWonTosses)
+
+    print('=-=-=-=-=')
+    print(invertedTeamDict[i])
+    print(tossWinRate)
+    print(timesPickedBat / numWonTosses)
+    print('=-=-=-=-=')
+
+print(tossWinRateList)
+print(batPickRateList)
+
+data['Team1'] = data['Team1'].map(lambda x: winRateList[x])
+data['Team2'] = data['Team2'].map(lambda x: winRateList[x])
+
+print(data.head())
+
+
 # redefine 'WinningTeam' to be 1 if Team1 won and -1 if Team2 won
 # print(data.head())
 data.loc[data['WinningTeam'] == data['Team1'], ['WinningTeam']] = 1
 data.loc[data['WinningTeam'] == data['Team2'], ['WinningTeam']] = -1
-# print(data.head())
+# do the same of toss winner
+data.loc[data['TossWinner'] == data['Team1'], ['TossWinner']] = 1
+data.loc[data['TossWinner'] == data['Team2'], ['TossWinner']] = -1
 
 # print(data[['Team1', 'WinningTeam']].groupby(['Team1'],
 #      as_index=False).mean().sort_values(by='WinningTeam', ascending=False))
 # print(data[['Team2', 'WinningTeam']].groupby(['Team2'],
 #      as_index=False).mean().sort_values(by='WinningTeam', ascending=False))
 
-# use target encoding to deal with nominal data
-winRateArray = []
-
-for i in range(15):
-    # calc number of won games
-    numWonGames = (data.loc[(data['Team1'] == i) & (data['WinningTeam'] == 1)]['WinningTeam'].sum()
-                 - data.loc[(data['Team2'] == i) & (data['WinningTeam'] == -1)]['WinningTeam'].sum())
-    # print(numWonGames)
-
-    # calc number of played games
-    numPlayedGames = (data.loc[data['Team1'] == i].shape[0] + data.loc[data['Team2'] == i].shape[0])
-    # print(numPlayedGames)
-
-    # calc win rate
-    winRate = numWonGames / numPlayedGames
-    winRateArray.insert(i, winRate)
-
-print(winRateArray)
-
-winRateMap = {}
-
-data['Team1'] = data['Team1'].map(lambda x: winRateArray[x])
-data['Team2'] = data['Team2'].map(lambda x: winRateArray[x])
-
-print(data.head())
