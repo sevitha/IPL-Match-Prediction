@@ -179,17 +179,18 @@ decision_tree = DecisionTreeClassifier()
 accumulated_decision_tree_accuracy = 0
 
 for x in range(0, 5):
-    # set current fold as testing set
-    fiveFoldTest_X = split_data[x].drop("TossWinner", axis=1).copy()
     # remove testing set from training data
-    recombinedData = pd.concat([data, split_data[x]]).drop_duplicates()
+    recombinedData = (pd.concat([data, split_data[x]])).drop_duplicates(keep=False).copy()
+    # set current fold as testing set
+    fiveFoldTest_Y = split_data[x]["WinningTeam"].copy()
+    fiveFoldTest_X = split_data[x].drop("WinningTeam", axis=1).copy()
     # train tree
-    fiveFoldTrain_X = recombinedData.drop("TossWinner", axis=1)
-    fiveFoldTrain_Y = recombinedData["TossWinner"]
+    fiveFoldTrain_X = recombinedData.drop("WinningTeam", axis=1).copy()
+    fiveFoldTrain_Y = recombinedData["WinningTeam"].copy()
     decision_tree.fit(fiveFoldTrain_X, fiveFoldTrain_Y)
     Y_pred = decision_tree.predict(fiveFoldTest_X)
     # accumulate total prediction
-    accumulated_decision_tree_accuracy += round(decision_tree.score(fiveFoldTrain_X, fiveFoldTrain_Y) * 100, 5)
+    accumulated_decision_tree_accuracy += round(decision_tree.score(fiveFoldTest_X, fiveFoldTest_Y) * 100, 5)
 # find arv prediction
 print(accumulated_decision_tree_accuracy / 5)
 
