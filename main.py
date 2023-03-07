@@ -52,7 +52,7 @@ data['Team1'] = data['Team1'].dropna().map(teamMapping).astype(int)
 data['Team2'] = data['Team2'].dropna().map(teamMapping).astype(int)
 data['TossWinner'] = data['TossWinner'].dropna().map(teamMapping).astype(int)
 data['WinningTeam'] = data['WinningTeam'].dropna().map(teamMapping).astype(int)
-print(data['Venue'].unique())
+# print(data['Venue'].unique())
 
 venueMapping = {'Narendra Modi Stadium, Ahmedabad': 1, 'Eden Gardens, Kolkata': 2,
                 'Wankhede Stadium, Mumbai': 3, 'Brabourne Stadium, Mumbai': 4,
@@ -170,9 +170,9 @@ data.loc[(data['TossDecision'] == 'field') | (data['TossDecision'] == 'Field'), 
 
 data = data.dropna()
 
-print(data['TossDecision'])
+# print(data['TossDecision'])
 
-# 5-fold cross validation
+# 5-fold cross validation DT
 split_data = np.array_split(data, 5)
 
 decision_tree = DecisionTreeClassifier()
@@ -194,3 +194,25 @@ for x in range(0, 5):
 # find arv prediction
 print(accumulated_decision_tree_accuracy / 5)
 
+# 5-fold cross validation RF
+split_data = np.array_split(data, 5)
+
+random_forest = RandomForestClassifier(n_estimators=100)
+accumulated_RF_accuracy = 0
+
+
+for x in range(0, 5):
+    # remove testing set from training data
+    recombinedData = (pd.concat([data, split_data[x]])).drop_duplicates(keep=False).copy()
+    # set current fold as testing set
+    fiveFoldTest_Y = split_data[x]["WinningTeam"].copy()
+    fiveFoldTest_X = split_data[x].drop("WinningTeam", axis=1).copy()
+    # train tree
+    fiveFoldTrain_X = recombinedData.drop("WinningTeam", axis=1).copy()
+    fiveFoldTrain_Y = recombinedData["WinningTeam"].copy()
+    random_forest.fit(fiveFoldTrain_X, fiveFoldTrain_Y)
+    Y_pred = random_forest.predict(fiveFoldTest_X)
+    # accumulate total prediction
+    accumulated_RF_accuracy += round(random_forest.score(fiveFoldTest_X, fiveFoldTest_Y) * 100, 5)
+# find arv prediction
+print(accumulated_RF_accuracy / 5)
