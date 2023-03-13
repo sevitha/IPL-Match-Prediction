@@ -170,49 +170,47 @@ data.loc[(data['TossDecision'] == 'field') | (data['TossDecision'] == 'Field'), 
 
 data = data.dropna()
 
+
 # print(data['TossDecision'])
 
-# 5-fold cross validation DT
-split_data = np.array_split(data, 5)
+# k-fold cross validation
 
-decision_tree = DecisionTreeClassifier()
-accumulated_decision_tree_accuracy = 0
+def k_fold_cross_validation(k, learner, input_data):
+    split_data = np.array_split(input_data, k)
+    accumulated_accuracy = 0
 
-for x in range(0, 5):
-    # remove testing set from training data
-    recombinedData = (pd.concat([data, split_data[x]])).drop_duplicates(keep=False).copy()
-    # set current fold as testing set
-    fiveFoldTest_Y = split_data[x]["WinningTeam"].copy()
-    fiveFoldTest_X = split_data[x].drop("WinningTeam", axis=1).copy()
-    # train tree
-    fiveFoldTrain_X = recombinedData.drop("WinningTeam", axis=1).copy()
-    fiveFoldTrain_Y = recombinedData["WinningTeam"].copy()
-    decision_tree.fit(fiveFoldTrain_X, fiveFoldTrain_Y)
-    Y_pred = decision_tree.predict(fiveFoldTest_X)
-    # accumulate total prediction
-    accumulated_decision_tree_accuracy += round(decision_tree.score(fiveFoldTest_X, fiveFoldTest_Y) * 100, 5)
-# find arv prediction
-print(accumulated_decision_tree_accuracy / 5)
-
-# 5-fold cross validation RF
-split_data = np.array_split(data, 5)
-
-random_forest = RandomForestClassifier(n_estimators=100)
-accumulated_RF_accuracy = 0
+    for x in range(0, k):
+        # remove testing set from training data
+        recombined_data = (pd.concat([data, split_data[x]])).drop_duplicates(keep=False).copy()
+        # set current fold as testing set
+        test_y = split_data[x]["WinningTeam"].copy()
+        test_x = split_data[x].drop("WinningTeam", axis=1).copy()
+        # train tree
+        train_x = recombined_data.drop("WinningTeam", axis=1).copy()
+        train_y = recombined_data["WinningTeam"].copy()
+        learner.fit(train_x, train_y)
+        # accumulate total prediction
+        accumulated_accuracy += round(learner.score(test_x, test_y) * 100, 5)
+    # find arv prediction
+    print(accumulated_accuracy / k)
+    return accumulated_accuracy / k
 
 
-for x in range(0, 5):
-    # remove testing set from training data
-    recombinedData = (pd.concat([data, split_data[x]])).drop_duplicates(keep=False).copy()
-    # set current fold as testing set
-    fiveFoldTest_Y = split_data[x]["WinningTeam"].copy()
-    fiveFoldTest_X = split_data[x].drop("WinningTeam", axis=1).copy()
-    # train tree
-    fiveFoldTrain_X = recombinedData.drop("WinningTeam", axis=1).copy()
-    fiveFoldTrain_Y = recombinedData["WinningTeam"].copy()
-    random_forest.fit(fiveFoldTrain_X, fiveFoldTrain_Y)
-    Y_pred = random_forest.predict(fiveFoldTest_X)
-    # accumulate total prediction
-    accumulated_RF_accuracy += round(random_forest.score(fiveFoldTest_X, fiveFoldTest_Y) * 100, 5)
-# find arv prediction
-print(accumulated_RF_accuracy / 5)
+print("DT")
+k_fold_cross_validation(5, DecisionTreeClassifier(), data)
+print("RF")
+k_fold_cross_validation(5, RandomForestClassifier(n_estimators=100), data)
+print("SVC")
+k_fold_cross_validation(5, SVC(gamma='auto'), data)
+print("KNN")
+k_fold_cross_validation(5, KNeighborsClassifier(n_neighbors=3), data)
+print("Naive Bayes")
+k_fold_cross_validation(5, GaussianNB(), data)
+print("SVC")
+k_fold_cross_validation(5, LinearSVC(), data)
+print("SGD")
+k_fold_cross_validation(5, SGDClassifier(), data)
+print("Perceptron")
+k_fold_cross_validation(5, Perceptron(), data)
+
+
