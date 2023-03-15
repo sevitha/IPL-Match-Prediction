@@ -194,11 +194,11 @@ for i in range(15):
 #   print(batPickRateList)
 
 # redefine 'WinningTeam' to be 1 if Team1 won and -1 if Team2 won
-data.loc[data['WinningTeam'] == data['Team1'], ['WinningTeam']] = 1
-data.loc[data['WinningTeam'] == data['Team2'], ['WinningTeam']] = -1
+data.loc[data['WinningTeam'] == data['Team1'], ['WinningTeam']] = 1.0
+data.loc[data['WinningTeam'] == data['Team2'], ['WinningTeam']] = -1.0
 # do the same of toss winner
-data.loc[data['TossWinner'] == data['Team1'], ['TossWinner']] = 1
-data.loc[data['TossWinner'] == data['Team2'], ['TossWinner']] = -1
+data.loc[data['TossWinner'] == data['Team1'], ['TossWinner']] = 1.0
+data.loc[data['TossWinner'] == data['Team2'], ['TossWinner']] = -1.0
 
 # use target encoding to deal with nominal data
 winRateList = []
@@ -206,21 +206,22 @@ invertedTeamDict = dict(map(reversed, teamMapping.items()))
 
 for i in range(15):
     # calc number of won games
-    numWonGames = data.loc[data['WinningTeam'] == i]['WinningTeam'].shape[0]
-
+    numWonGames = data.loc[(data['Team1'] == i) & (data['WinningTeam'] > 0)].shape[0]
+    numWonGames += data.loc[(data['Team2'] == i) & (data['WinningTeam'] < 0)].shape[0]
     # calc number of played games
     numPlayedGames = (data.loc[data['Team1'] == i].shape[0] + data.loc[data['Team2'] == i].shape[0])
-    #    print('=======')
-    #    print(invertedTeamDict[i])
-    #    print(numWonGames)
-    #    print(numPlayedGames)
-    #    print('=======')
+    # print('=======')
+    # print(invertedTeamDict[i])
+    # print(numWonGames)
+    # print(numPlayedGames)
+    # print('=======')
 
     # calc win rate
     winRate = numWonGames / numPlayedGames
+    # print(winRate)
     winRateList.insert(i, winRate)
 
-# print(winRateList)
+print(winRateList)
 
 data['Team1'] = data['Team1'].map(lambda x: winRateList[x])
 data['Team2'] = data['Team2'].map(lambda x: winRateList[x])
@@ -275,24 +276,23 @@ def k_fold_cross_validation(k, learner, input_data):
     print(accumulated_accuracy / k)
     return accumulated_accuracy / k
 
-
-print(data.head())
+k = 10
 
 print("DT")
-k_fold_cross_validation(5, DecisionTreeClassifier(), data)
+k_fold_cross_validation(k, DecisionTreeClassifier(), data)
 print("RF")
-k_fold_cross_validation(5, RandomForestClassifier(n_estimators=100), data)
+k_fold_cross_validation(k, RandomForestClassifier(n_estimators=100), data)
 print("AdaBoost")
-k_fold_cross_validation(5, AdaBoostClassifier(n_estimators=200), data)
+k_fold_cross_validation(k, AdaBoostClassifier(n_estimators=200), data)
 print("Gradient Boosting")
-k_fold_cross_validation(5, GradientBoostingClassifier(n_estimators=200), data)
+k_fold_cross_validation(k, GradientBoostingClassifier(n_estimators=200), data)
 print("SVC")
-k_fold_cross_validation(5, SVC(gamma='auto'), data)
+k_fold_cross_validation(k, SVC(gamma='auto'), data)
 print("KNN")
-k_fold_cross_validation(5, KNeighborsClassifier(n_neighbors=3), data)
+k_fold_cross_validation(k, KNeighborsClassifier(n_neighbors=3), data)
 print("Naive Bayes")
-k_fold_cross_validation(5, GaussianNB(), data)
+k_fold_cross_validation(k, GaussianNB(), data)
 print("SGD")
-k_fold_cross_validation(5, SGDClassifier(), data)
+k_fold_cross_validation(k, SGDClassifier(), data)
 print("Perceptron")
-k_fold_cross_validation(5, Perceptron(), data)
+k_fold_cross_validation(k, Perceptron(), data)
