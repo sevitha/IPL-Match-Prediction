@@ -48,7 +48,6 @@ data['Season'] = pd.to_numeric(data['Season'], 'coerce', 'integer')
 
 # drop undecided matches
 data['WinningTeam'] = data['WinningTeam'].dropna()
-data.info()
 
 # Map team names to numbers
 # some teams have been renamed, so they map to the same value
@@ -221,7 +220,7 @@ for i in range(15):
     # print(winRate)
     winRateList.insert(i, winRate)
 
-print(winRateList)
+# print(winRateList)
 
 data['Team1'] = data['Team1'].map(lambda x: winRateList[x])
 data['Team2'] = data['Team2'].map(lambda x: winRateList[x])
@@ -262,7 +261,7 @@ def k_fold_cross_validation(k, learner, input_data):
 
     for x in range(0, k):
         # remove testing set from training data
-        recombined_data = (pd.concat([data, split_data[x]])).drop_duplicates(keep=False).copy()
+        recombined_data = (pd.concat([input_data, split_data[x]])).drop_duplicates(keep=False).copy()
         # set current fold as testing set
         test_y = split_data[x]["WinningTeam"].copy()
         test_x = split_data[x].drop("WinningTeam", axis=1).copy()
@@ -277,6 +276,8 @@ def k_fold_cross_validation(k, learner, input_data):
     return accumulated_accuracy / k
 
 k = 10
+
+# print(data.info())
 
 print("DT")
 k_fold_cross_validation(k, DecisionTreeClassifier(), data)
